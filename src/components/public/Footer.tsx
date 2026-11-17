@@ -120,11 +120,14 @@ export function Footer({ settings, profile, onNavigate }: FooterProps) {
               <li>
                 <span>{profile.commercialAddress || 'Atendimento consultivo em Pernambuco'}</span>
               </li>
-              {profile.email && (
-                <li>
-                  <span>{profile.email}</span>
-                </li>
-              )}
+              <li>
+                <a
+                  href={`mailto:${profile.email || 'brunodinizcorretordeimoveis@gmail.com'}`}
+                  className="hover:text-[#C6A15B] transition-colors"
+                >
+                  {profile.email || 'brunodinizcorretordeimoveis@gmail.com'}
+                </a>
+              </li>
               <li>
                 <button
                   type="button"

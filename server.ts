@@ -4,6 +4,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import { executeLocalAIMatch } from './src/lib/aiMatcher';
 
 dotenv.config();
 
@@ -124,49 +125,29 @@ async function startServer() {
 
   // AI Property Matchmaker Endpoint
   app.post('/api/ai-match', async (req, res) => {
+    const { prompt, properties } = (req.body || {}) as {
+      prompt?: string;
+      properties?: any[];
+    };
+
+    if (!prompt || typeof prompt !== 'string') {
+      res.status(400).json({ error: 'Prompt de busca é obrigatório.' });
+      return;
+    }
+
+    const safeProperties = Array.isArray(properties) ? properties : [];
+    const localMatch = executeLocalAIMatch(prompt, safeProperties);
+
+    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!apiKey) {
+      res.json(localMatch);
+      return;
+    }
+
     try {
-      const { prompt, properties } = req.body as {
-        prompt?: string;
-        properties?: any[];
-      };
-
-      if (!prompt || !properties || !Array.isArray(properties)) {
-        res.status(400).json({ error: 'Prompt e lista de imóveis são obrigatórios.' });
-        return;
-      }
-
-      const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
-      if (!apiKey) {
-        const lower = prompt.toLowerCase();
-        const scored = properties.map((p) => {
-          let score = 50;
-          const text = `${p.title} ${p.description} ${p.category} ${p.region} ${p.features?.join(' ')}`.toLowerCase();
-          const keywords = lower.split(/\s+/).filter(w => w.length > 2);
-          keywords.forEach(kw => {
-            if (text.includes(kw)) score += 15;
-          });
-          return {
-            id: p.id,
-            score: Math.min(100, Math.max(20, score)),
-            reason: `Compatível com base nos termos informados (${p.category} — ${p.region}).`,
-          };
-        }).sort((a, b) => b.score - a.score);
-
-        res.json({
-          matches: scored,
-          funnelMessage: `Analisamos seu pedido ("${prompt}"). Filtramos o portfólio para apresentar os imóveis mais adequados ao seu perfil.`,
-          nextQuestions: [
-            'Deseja focar em imóveis frente ao mar?',
-            'Qual a faixa de valor estimada para investimento?',
-            'Prefere agendar uma visita presencial ou atendimento online?'
-          ],
-        });
-        return;
-      }
-
       const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: 'gemini-4-hydrogen',
+      const geminiPromise = ai.models.generateContent({
+        model: 'gemini-2.5-flash',
         contents: [
           {
             role: 'user',
@@ -175,38 +156,49 @@ async function startServer() {
                 text: `Você é o consultor imobiliário sênior de Bruno Diniz (CRECI-PE 21512), especialista em imóveis de Litoral, Médio e Alto Padrão em Pernambuco.
 O cliente enviou o seguinte pedido em linguagem natural: "${prompt}".
 Aqui está a lista de imóveis disponíveis em JSON:
-${JSON.stringify(properties.map(p => ({ id: p.id, code: p.code, title: p.title, category: p.category, region: p.region, description: p.description, features: p.features })))}
+${JSON.stringify(
+  safeProperties.map((p) => ({
+    id: p.id,
+    code: p.code,
+    title: p.title,
+    category: p.category,
+    region: p.region,
+    bedrooms: p.bedrooms,
+    description: p.description,
+    features: p.features,
+  }))
+)}
 
-Analise o pedido do cliente, funile e filtre os imóveis. Retorne estritamente um objeto JSON válido (sem markdown de código extra) com o seguinte formato:
+Analise o pedido do cliente, funile e filtre os imóveis para encontrar o mais compatível ou os mais próximos. Retorne estritamente um objeto JSON válido (sem tags extras markdown):
 {
   "matches": [
-    { "id": "...", "score": 95, "reason": "Explicação detalhada do porquê este imóvel atende ao pedido do cliente..." }
+    { "id": "id-do-imovel", "score": 95, "reason": "Motivo claro e consultivo pelo qual este imóvel atende ao pedido..." }
   ],
-  "funnelMessage": "Mensagem consultiva amigável do corretor funilando e guiando o cliente...",
+  "funnelMessage": "Mensagem consultiva elegante de Bruno Diniz orientando a escolha...",
   "nextQuestions": ["Pergunta de funil 1?", "Pergunta de funil 2?"]
-}`
-              }
-            ]
-          }
-        ]
+}`,
+              },
+            ],
+          },
+        ],
       });
 
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout Gemini')), 4000)
+      );
+
+      const response = (await Promise.race([geminiPromise, timeoutPromise])) as any;
       const textOutput = response.text || '';
       const cleanJson = textOutput.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
-      res.json(parsed);
-    } catch (error) {
-      const { prompt, properties } = req.body;
-      const scored = (properties || []).map((p: any) => ({
-        id: p.id,
-        score: 75,
-        reason: 'Imóvel selecionado do portfólio com excelente aderência ao perfil solicitado.',
-      }));
-      res.json({
-        matches: scored,
-        funnelMessage: `Com base em "${prompt}", filtramos os melhores imóveis para você.`,
-        nextQuestions: ['Deseja receber a ficha técnica detalhada via WhatsApp?'],
-      });
+
+      if (parsed && Array.isArray(parsed.matches) && parsed.matches.length > 0) {
+        res.json(parsed);
+        return;
+      }
+      res.json(localMatch);
+    } catch {
+      res.json(localMatch);
     }
   });
 

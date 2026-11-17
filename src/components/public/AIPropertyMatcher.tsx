@@ -4,17 +4,13 @@ import { Property, SiteSettings } from '../../types';
 import { SafeImage } from '../ui/SafeImage';
 import { buildWhatsAppUrl, formatBRL } from '../../lib/utils';
 import { useTheme } from '../ui/ThemeContext';
+import { executeLocalAIMatch, AIMatchResponse } from '../../lib/aiMatcher';
+import { DEFAULT_PROPERTIES } from '../../lib/seedData';
 
 interface AIPropertyMatcherProps {
   properties: Property[];
   settings: SiteSettings;
   onNavigate: (path: string) => void;
-}
-
-interface MatchResult {
-  id: string;
-  score: number;
-  reason: string;
 }
 
 export function AIPropertyMatcher({ properties, settings, onNavigate }: AIPropertyMatcherProps) {
@@ -27,6 +23,8 @@ export function AIPropertyMatcher({ properties, settings, onNavigate }: AIProper
   const [nextQuestions, setNextQuestions] = useState<string[]>([]);
   const [matchedResults, setMatchedResults] = useState<{ property: Property; score: number; reason: string }[] | null>(null);
   const [error, setError] = useState('');
+
+  const effectiveProperties = properties && properties.length > 0 ? properties : DEFAULT_PROPERTIES;
 
   const suggestions = [
     'Apartamento de Alto Padrão frente mar em Pernambuco',
@@ -41,36 +39,63 @@ export function AIPropertyMatcher({ properties, settings, onNavigate }: AIProper
     setError('');
 
     try {
-      const res = await fetch('/api/ai-match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: textToSearch, properties }),
-      });
+      let data: AIMatchResponse | null = null;
 
-      if (!res.ok) {
-        throw new Error('Falha ao processar inteligência artificial.');
+      // 1. Try server endpoint (Vercel Serverless Function or local server)
+      try {
+        const minimalProps = effectiveProperties.map((p) => ({
+          id: p.id,
+          code: p.code,
+          title: p.title,
+          category: p.category,
+          region: p.region,
+          bedrooms: p.bedrooms,
+          description: p.description,
+          features: p.features,
+        }));
+
+        const res = await fetch('/api/ai-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: textToSearch, properties: minimalProps }),
+        });
+
+        if (res.ok) {
+          data = (await res.json()) as AIMatchResponse;
+        }
+      } catch {
+        // Fallback directly to client matching engine
       }
 
-      const data = (await res.json()) as {
-        matches: MatchResult[];
-        funnelMessage: string;
-        nextQuestions: string[];
-      };
+      // 2. If server didn't respond or returned empty, executeLocalAIMatch directly
+      if (!data || !data.matches || data.matches.length === 0) {
+        data = executeLocalAIMatch(textToSearch, effectiveProperties);
+      }
 
       setFunnelMessage(data.funnelMessage);
       setNextQuestions(data.nextQuestions || []);
 
       const mapped = (data.matches || [])
         .map((m) => {
-          const property = properties.find((p) => p.id === m.id);
+          const property = effectiveProperties.find((p) => p.id === m.id);
           return property ? { property, score: m.score, reason: m.reason } : null;
         })
         .filter(Boolean) as { property: Property; score: number; reason: string }[];
 
       mapped.sort((a, b) => b.score - a.score);
-      setMatchedResults(mapped);
+      setMatchedResults(mapped.length > 0 ? mapped : null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro inesperado ao consultar assistente de IA.');
+      // Last line of defense: execute local matcher
+      const fallback = executeLocalAIMatch(textToSearch, effectiveProperties);
+      setFunnelMessage(fallback.funnelMessage);
+      setNextQuestions(fallback.nextQuestions);
+      const mapped = (fallback.matches || [])
+        .map((m) => {
+          const property = effectiveProperties.find((p) => p.id === m.id);
+          return property ? { property, score: m.score, reason: m.reason } : null;
+        })
+        .filter(Boolean) as { property: Property; score: number; reason: string }[];
+      setMatchedResults(mapped);
     } finally {
       setLoading(false);
     }

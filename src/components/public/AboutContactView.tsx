@@ -18,10 +18,10 @@ export function AboutView({ profile, settings, onNavigate }: AboutViewProps) {
   const isDark = theme === 'dark';
 
   const milestones = [
-    { year: '2016', title: 'Início da Trajetória', desc: 'Ingresso no mercado imobiliário de alto padrão em Pernambuco com foco em assessoria documental e jurídica.' },
-    { year: '2019', title: 'Especialização Litoral & Beira-Mar', desc: 'Consolidação como referência em empreendimentos de luxo nas praias mais valorizadas do litoral pernambucano.' },
-    { year: '2022', title: 'Certificação CRECI-PE 21512', desc: 'Expansão do escopo de assessoria consultiva para investidores nacionais e internacionais.' },
-    { year: 'Hoje', title: 'Marca de Referência e Inovação', desc: 'Liderança em vendas e negócios imobiliários de alto padrão com tecnologia e atendimento humanizado.' },
+    { year: '2023', title: 'Entrada no Mercado & Litoral', desc: 'Entrei no mercado em 2023, sempre atuando com foco e dedicação no litoral pernambucano.' },
+    { year: '2024', title: 'Médio e Alto Padrão', desc: 'Passei a atuar no mercado de médio e alto padrão com assessoria consultiva personalizada e criteriosa.' },
+    { year: '2025', title: 'Campeão de Diretoria e Equipe', desc: 'Fui campeão de diretoria e equipe, me destacando no meio de 400 corretores com resultados consistentes.' },
+    { year: 'Hoje', title: 'Marca de Referência & Inovação', desc: 'Uma marca à altura de uma trajetória. Atendimento consultivo exclusivo com credibilidade, tecnologia e excelência.' },
   ];
 
   const credentials = [
@@ -90,7 +90,7 @@ export function AboutView({ profile, settings, onNavigate }: AboutViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className={`rounded-xl border p-4 transition-colors ${isDark ? 'border-white/10 bg-[#131317]' : 'border-black/10 bg-white shadow-sm'}`}>
               <p className="font-semibold text-[#C6A15B]">E-mail Profissional</p>
-              <p className={`mt-1 ${isDark ? 'text-[#F5F2EB]' : 'text-[#1A1A1E]'}`}>{profile.email || 'contato@brunodinizimoveis.com.br'}</p>
+              <p className={`mt-1 ${isDark ? 'text-[#F5F2EB]' : 'text-[#1A1A1E]'}`}>{profile.email || 'brunodinizcorretordeimoveis@gmail.com'}</p>
             </div>
             <div className={`rounded-xl border p-4 transition-colors ${isDark ? 'border-white/10 bg-[#131317]' : 'border-black/10 bg-white shadow-sm'}`}>
               <p className="font-semibold text-[#C6A15B]">Área de Atuação Principal</p>

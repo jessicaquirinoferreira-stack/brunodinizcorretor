@@ -88,10 +88,9 @@ export const DEFAULT_PROFESSIONAL_PROFILE: ProfessionalProfile = {
   instagramPosts: 131,
   instagramFollowers: 562,
   instagramFollowing: 312,
-  whatsapp: '5581997039417',
-  email: '',
-  commercialAddress: '',
-  experienceYears: '',
+  email: 'brunodinizcorretordeimoveis@gmail.com',
+  commercialAddress: 'Pernambuco — Litoral, Boa Viagem e Alto Padrão',
+  experienceYears: 'Desde 2023',
   portraitImage: ABOUT_IMAGE,
 };
 
