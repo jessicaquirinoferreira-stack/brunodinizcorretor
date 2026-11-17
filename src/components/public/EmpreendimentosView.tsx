@@ -27,7 +27,7 @@ export function EmpreendimentosListView({ empreendimentos, onSelect }: Empreendi
           Lançamentos & Residenciais · CRECI-PE 21512
         </p>
         <h1 className="font-display text-4xl sm:text-5xl font-semibold text-[#F5F2EB]">
-          Empreendimentos em Curadoria
+          Empreendimentos Selecionados
         </h1>
         <p className="text-sm sm:text-base text-[#A19E95] max-w-2xl">
           Projetos residenciais selecionados no litoral e regiões estratégicas de Pernambuco, com informações técnicas confirmadas diretamente junto ao corretor.

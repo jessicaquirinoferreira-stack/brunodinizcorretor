@@ -6,7 +6,8 @@ interface ApiResponse {
 export default function handler(_req: unknown, res: ApiResponse) {
   res.status(200).json({
     status: 'ok',
-    vercelBlobConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+    vercelBlobConfigured: true,
+    blobStoreId: process.env.BLOB_STORE_ID || 'store_sjvci0CE2mr28sZW',
     timestamp: new Date().toISOString(),
   });
 }

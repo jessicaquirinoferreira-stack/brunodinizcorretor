@@ -1,5 +1,11 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { ThemeProvider, useTheme } from './components/ui/ThemeContext';
 import { ScrollProgressBar } from './components/motion/PremiumMotion';
 import { Navbar } from './components/public/Navbar';
 import { Footer } from './components/public/Footer';
@@ -54,7 +60,7 @@ import type {
   SiteSettings,
 } from './types';
 
-export default function App() {
+function MainAppContent() {
   const [path, setPath] = useState<string>(() => window.location.pathname || '/');
   const [showIntro, setShowIntro] = useState<boolean>(
     () => !window.location.pathname.startsWith('/admin')
@@ -70,6 +76,8 @@ export default function App() {
   const [properties, setProperties] = useState<Property[]>(DEFAULT_PROPERTIES);
   const [empreendimentos, setEmpreendimentos] = useState<Empreendimento[]>(DEFAULT_EMPREENDIMENTOS);
   const [landingPages, setLandingPages] = useState<LandingPage[]>([DEFAULT_LANDING_PAGE]);
+
+  const { theme } = useTheme();
 
   const loadPublicData = async () => {
     const [s, p, props, emps, lps] = await Promise.all([
@@ -154,7 +162,7 @@ export default function App() {
       return (
         <Suspense
           fallback={
-            <div className="min-h-screen bg-[#0B0B0D] text-[#A19E95] flex items-center justify-center text-sm">
+            <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#0B0B0D] text-[#A19E95]' : 'bg-[#F8F9FA] text-[#6B7280]'} flex items-center justify-center text-sm`}>
               Carregando painel administrativo...
             </div>
           }
@@ -323,7 +331,7 @@ export default function App() {
     };
 
     return (
-      <div className="min-h-screen flex flex-col bg-[#0B0B0D] text-[#F5F2EB]">
+      <div className={`min-h-screen flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-[#0B0B0D] text-[#F5F2EB]' : 'bg-[#FAFAFA] text-[#1A1A1E]'}`}>
         <ScrollProgressBar />
         <Navbar
           currentPath={path}
@@ -359,5 +367,13 @@ export default function App() {
       )}
       {renderAppView()}
     </ErrorBoundary>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <MainAppContent />
+    </ThemeProvider>
   );
 }

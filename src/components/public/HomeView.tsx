@@ -12,6 +12,8 @@ import { PropertyCard } from './PropertyCard';
 import { LeadCaptureForm } from './LeadCaptureForm';
 import { buildWhatsAppUrl, formatBRL } from '../../lib/utils';
 import { logAnalyticsEvent } from '../../lib/analytics';
+import { useTheme } from '../ui/ThemeContext';
+import { AIPropertyMatcher } from './AIPropertyMatcher';
 import type {
   Empreendimento,
   LandingPage,
@@ -39,6 +41,8 @@ export function HomeView({
   onNavigate,
   onQuickSearch,
 }: HomeViewProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [businessType, setBusinessType] = useState('Todos');
   const [category, setCategory] = useState('Todas');
   const [region, setRegion] = useState('');
@@ -113,7 +117,7 @@ export function HomeView({
     {
       index: '02.',
       title: 'Resultados Consistentes',
-      body: 'Estratégia imobiliária focada em liquidez, curadoria precisa de imóveis e acompanhamento contínuo desde o primeiro contato até a conclusão.',
+      body: 'Estratégia imobiliária focada em liquidez, seleção criteriosa de imóveis e acompanhamento contínuo desde o primeiro contato até a conclusão.',
     },
     {
       index: '03.',
@@ -307,15 +311,22 @@ export function HomeView({
         </div>
       </section>
 
+      {/* AI PROPERTY MATCHMAKER & FUNNEL */}
+      <AIPropertyMatcher
+        properties={properties}
+        settings={settings}
+        onNavigate={onNavigate}
+      />
+
       {/* FEATURED PROPERTIES */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
         <RevealSection className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-widest text-[#C6A15B]">
+            <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-[#C6A15B]' : 'text-black font-extrabold'}`}>
               Seleção em Destaque
             </p>
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#F5F2EB]">
-              Imóveis em Curadoria
+            <h2 className={`font-display text-3xl sm:text-4xl font-bold ${isDark ? 'text-[#F5F2EB]' : 'text-black font-extrabold'}`}>
+              Imóveis Selecionados
             </h2>
           </div>
           <button
@@ -458,10 +469,10 @@ export function HomeView({
       {/* THE THREE PILLARS */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
         <RevealSection className="max-w-2xl space-y-3 mb-12">
-          <p className="text-xs font-medium uppercase tracking-widest text-[#C6A15B]">
+          <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-[#C6A15B]' : 'text-black font-extrabold'}`}>
             Posicionamento Institucional
           </p>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#F5F2EB]">
+          <h2 className={`font-display text-3xl sm:text-4xl font-bold ${isDark ? 'text-[#F5F2EB]' : 'text-black font-extrabold'}`}>
             Pilares que sustentam cada negociação
           </h2>
         </RevealSection>
@@ -600,16 +611,16 @@ export function HomeView({
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           <div className="lg:col-span-5 space-y-5">
-            <p className="text-xs font-medium uppercase tracking-widest text-[#C6A15B]">
+            <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-[#C6A15B]' : 'text-black font-extrabold'}`}>
               Atendimento Personalizado
             </p>
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#F5F2EB] text-balance">
+            <h2 className={`font-display text-3xl sm:text-4xl font-bold text-balance ${isDark ? 'text-[#F5F2EB]' : 'text-black font-extrabold'}`}>
               Encontre o imóvel ideal com atendimento direto.
             </h2>
-            <p className="text-sm sm:text-base text-[#A19E95] leading-relaxed">
+            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-[#A19E95]' : 'text-black font-semibold'}`}>
               Informe o perfil que você procura ou agende um horário para conversarmos sobre oportunidades no Litoral, Médio e Alto Padrão em Pernambuco.
             </p>
-            <ul className="space-y-2.5 pt-2 text-sm text-[#F5F2EB]/85">
+            <ul className={`space-y-2.5 pt-2 text-sm ${isDark ? 'text-[#F5F2EB]/85' : 'text-black font-semibold'}`}>
               <li className="flex items-center gap-2.5">
                 <CheckCircle2 className="h-4 w-4 text-[#C6A15B] shrink-0" />
                 <span>Confirmação direta de disponibilidade e documentação</span>
@@ -620,7 +631,7 @@ export function HomeView({
               </li>
               <li className="flex items-center gap-2.5">
                 <Building2 className="h-4 w-4 text-[#C6A15B] shrink-0" />
-                <span>Curadoria alinhada ao seu objetivo de moradia ou patrimônio</span>
+                <span>Seleção alinhada ao seu objetivo de moradia ou patrimônio</span>
               </li>
             </ul>
           </div>

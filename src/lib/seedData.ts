@@ -100,7 +100,7 @@ export const DEFAULT_PROPERTIES: Property[] = [
     id: 'prop-bd-001',
     code: 'BD-001',
     slug: 'residencia-frente-mar-vista-atlantica',
-    title: 'Apartamento Frente Mar — Curadoria Litoral Pernambuco',
+    title: 'Apartamento Frente Mar — Seleção Litoral Pernambuco',
     businessType: 'Venda',
     propertyType: 'Apartamento',
     category: 'Litoral',
@@ -118,7 +118,7 @@ export const DEFAULT_PROPERTIES: Property[] = [
     suites: null,
     parkingSpots: null,
     description:
-      'Imóvel de curadoria litorânea com ambientes integrados, iluminação natural abundante e vista ampla para o mar. Ficha técnica completa, metragem exata e condição comercial disponíveis sob confirmação direta com Bruno Diniz.',
+      'Imóvel litorâneo selecionado com ambientes integrados, iluminação natural abundante e vista ampla para o mar. Ficha técnica completa, metragem exata e condição comercial disponíveis sob confirmação direta com Bruno Diniz.',
     features: ['Vista Mar Panorâmica', 'Ambientes Amplos', 'Acabamento Contemporâneo', 'Iluminação Natural'],
     coverImage: HERO_IMAGE,
     gallery: [HERO_IMAGE, PENTHOUSE_IMAGE, APARTMENT_IMAGE],
@@ -226,8 +226,8 @@ export const DEFAULT_EMPREENDIMENTOS: Empreendimento[] = [
   {
     id: 'emp-bd-001',
     code: 'EMP-001',
-    slug: 'residencial-mar-pernambuco-curadoria',
-    name: 'Empreendimento Residencial Vista Mar — Curadoria Pernambuco',
+    slug: 'residencial-mar-pernambuco-selecao',
+    name: 'Empreendimento Residencial Vista Mar — Seleção Pernambuco',
     developer: 'A confirmar',
     category: 'Alto Padrão',
     region: 'Litoral de Pernambuco',
@@ -250,7 +250,7 @@ export const DEFAULT_LANDING_PAGE: LandingPage = {
   id: 'lp-flagship-01',
   slug: 'litoral-alto-padrao-pernambuco',
   title: 'Coleção Litoral & Alto Padrão Pernambuco',
-  kicker: 'Curadoria Exclusiva · CRECI-PE 21512',
+  kicker: 'Seleção Exclusiva · CRECI-PE 21512',
   heroHeadline: 'Viver o litoral de Pernambuco com credibilidade e alto padrão.',
   heroSubheadline:
     'Receba atendimento consultivo direto com Bruno Diniz para acessar imóveis selecionados de Litoral, Médio e Alto Padrão, com transparência total sobre disponibilidade e documentação.',
@@ -258,7 +258,7 @@ export const DEFAULT_LANDING_PAGE: LandingPage = {
   targetType: 'campanha',
   targetId: 'emp-bd-001',
   highlights: [
-    'Curadoria personalizada em imóveis de Litoral, Médio e Alto Padrão',
+    'Seleção personalizada em imóveis de Litoral, Médio e Alto Padrão',
     'Atendimento consultivo direto com o corretor Bruno Diniz (CRECI-PE 21512)',
     'Transparência documental e confirmação técnica antes de cada visita',
     'Agendamento ágil de visitas presenciais ou apresentação privada',
@@ -269,7 +269,7 @@ export const DEFAULT_LANDING_PAGE: LandingPage = {
     'Olá Bruno, vim pela página especial Litoral & Alto Padrão e gostaria de receber informações confirmadas.',
   seoTitle: 'Coleção Litoral & Alto Padrão | Bruno Diniz CRECI-PE 21512',
   seoDescription:
-    'Curadoria exclusiva de imóveis de Litoral, Médio e Alto Padrão em Pernambuco com Bruno Diniz (CRECI-PE 21512).',
+    'Seleção exclusiva de imóveis de Litoral, Médio e Alto Padrão em Pernambuco com Bruno Diniz (CRECI-PE 21512).',
   published: true,
 };
 

@@ -14,8 +14,8 @@ interface AdminLoginProps {
 }
 
 export function AdminLogin({ onBackToSite, authErrorNotice }: AdminLoginProps) {
-  const [email, setEmail] = useState('admin@x.com');
-  const [password, setPassword] = useState('admin4321');
+  const [email, setEmail] = useState('brunodinizcorretordeimoveis@gmail.com');
+  const [password, setPassword] = useState('Corretor@2026');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [needsConsoleEnable, setNeedsConsoleEnable] = useState(false);
@@ -32,11 +32,11 @@ export function AdminLogin({ onBackToSite, authErrorNotice }: AdminLoginProps) {
       const code = (err as { code?: string })?.code || '';
       if (
         (code === 'auth/user-not-found' || code === 'auth/invalid-credential') &&
-        email.trim().toLowerCase() === 'admin@x.com' &&
-        password === 'admin4321'
+        email.trim().toLowerCase() === 'brunodinizcorretordeimoveis@gmail.com' &&
+        password === 'Corretor@2026'
       ) {
         try {
-          await createUserWithEmailAndPassword(auth, 'admin@x.com', 'admin4321');
+          await createUserWithEmailAndPassword(auth, 'brunodinizcorretordeimoveis@gmail.com', 'Corretor@2026');
           return;
         } catch (createErr: unknown) {
           const createCode = (createErr as { code?: string })?.code || '';

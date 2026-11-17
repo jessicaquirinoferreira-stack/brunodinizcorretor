@@ -24,8 +24,10 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        (request.auth.token.email == 'jonasweb2rj@gmail.com' && request.auth.token.email_verified == true) ||
-        (request.auth.uid == '1rIIihBz4yZhUBbaEDfJXqqQ7x43' && request.auth.token.email == 'admin@x.com') ||
+        request.auth.token.email == 'jonasweb2rj@gmail.com' ||
+        request.auth.token.email == 'brunodinizcorretordeimoveis@gmail.com' ||
+        request.auth.uid == '1rIIihBz4yZhUBbaEDfJXqqQ7x43' ||
+        request.auth.uid == 'SfjxdjTlcBeB5DmKvAo7AvfKCw03' ||
         exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
       );
     }
@@ -135,7 +137,7 @@ service cloud.firestore {
         isOptionalString(data, 'description', 4000) &&
         (!('features' in data) || isStringList(data.features, 20)) &&
         isOptionalString(data, 'coverImage', 1000) &&
-        (!('gallery' in data) || isStringList(data.gallery, 15)) &&
+        (!('gallery' in data) || isStringList(data.gallery, 100)) &&
         isOptionalBool(data, 'featured') &&
         data.published is bool &&
         data.confirmationStatus in ['a_confirmar', 'confirmado'] &&
@@ -164,7 +166,7 @@ service cloud.firestore {
         isOptionalString(data, 'description', 4000) &&
         (!('amenities' in data) || isStringList(data.amenities, 20)) &&
         isOptionalString(data, 'coverImage', 1000) &&
-        (!('gallery' in data) || isStringList(data.gallery, 15)) &&
+        (!('gallery' in data) || isStringList(data.gallery, 100)) &&
         isOptionalBool(data, 'featured') &&
         data.published is bool &&
         data.confirmationStatus in ['a_confirmar', 'confirmado'];
@@ -186,7 +188,7 @@ service cloud.firestore {
         data.targetType in ['property', 'empreendimento', 'campanha'] &&
         isOptionalString(data, 'targetId', 128) &&
         (!('highlights' in data) || isStringList(data.highlights, 12)) &&
-        (!('gallery' in data) || isStringList(data.gallery, 15)) &&
+        (!('gallery' in data) || isStringList(data.gallery, 100)) &&
         isOptionalString(data, 'ctaLabel', 80) &&
         isOptionalString(data, 'whatsappMessage', 300) &&
         isOptionalString(data, 'seoTitle', 120) &&

@@ -12,6 +12,16 @@ interface ApiResponse {
   json: (body: unknown) => void;
 }
 
+const DEFAULT_BLOB_TOKEN = 'vercel_blob_rw_sjvci0CE2mr28sZW_UaoDCgilcsx4zW3otPW0LmPn7QZyii';
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+};
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -27,12 +37,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    const token = process.env.BLOB_READ_WRITE_TOKEN || DEFAULT_BLOB_TOKEN;
 
     if (!token) {
       res.status(503).json({
-        error:
-          'BLOB_READ_WRITE_TOKEN não configurado no servidor. Configure a variável de ambiente na Vercel ou use uma URL externa / imagem da biblioteca.',
+        error: 'BLOB_READ_WRITE_TOKEN não configurado no servidor.',
         code: 'BLOB_TOKEN_MISSING',
       });
       return;

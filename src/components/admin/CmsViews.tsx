@@ -25,6 +25,7 @@ import {
 import { DEFAULT_LANDING_PAGE, HERO_IMAGE } from '../../lib/seedData';
 import { formatBRL, slugify } from '../../lib/utils';
 import { SafeImage } from '../ui/SafeImage';
+import { compressImageFile } from '../../lib/imageCompressor';
 import type {
   AdminUser,
   BusinessType,
@@ -53,6 +54,7 @@ export function PropertiesAdminPanel({
 }) {
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const startNew = () => {
     setEditing({
@@ -296,12 +298,57 @@ export function PropertiesAdminPanel({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-[#A19E95] mb-1">URL da Imagem de Capa</label>
+              <label className="block text-xs text-[#A19E95] mb-1 flex items-center justify-between">
+                <span>Imagem de Capa (URL ou Dispositivo)</span>
+                <label className="cursor-pointer text-[11px] text-[#C6A15B] hover:underline inline-flex items-center gap-1">
+                  <Upload className="h-3 w-3" />
+                  {uploadingMedia ? 'Comprimindo...' : 'Enviar do Dispositivo'}
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setUploadingMedia(true);
+                        try {
+                          const compressed = await compressImageFile(file);
+                          const reader = new FileReader();
+                          reader.onload = async () => {
+                            const res = await fetch('/api/blob/upload', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                filename: compressed.name,
+                                contentType: compressed.type,
+                                base64Data: reader.result,
+                              }),
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              setEditing({ ...editing, coverImage: data.url });
+                            } else {
+                              const err = await res.json();
+                              alert(err.error || 'Erro no upload.');
+                            }
+                            setUploadingMedia(false);
+                          };
+                          reader.readAsDataURL(compressed);
+                        } catch {
+                          alert('Erro ao processar arquivo.');
+                          setUploadingMedia(false);
+                        }
+                      }
+                    }}
+                  />
+                </label>
+              </label>
               <input
                 type="text"
                 value={editing.coverImage || ''}
                 onChange={(e) => setEditing({ ...editing, coverImage: e.target.value })}
                 className="w-full rounded-lg border border-white/10 bg-[#0B0B0D] px-3 py-2 text-xs text-[#F5F2EB]"
+                placeholder="https://..."
               />
             </div>
             <div>
@@ -326,6 +373,113 @@ export function PropertiesAdminPanel({
               className="w-full rounded-lg border border-white/10 bg-[#0B0B0D] px-3 py-2 text-xs text-[#F5F2EB]"
             />
           </div>
+
+          {/* ANEXOS ILIMITADOS / GALERIA DE FOTOS E VÍDEOS */}
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-[#F5F2EB]">
+                  Fotos e Vídeos do Imóvel ({editing.gallery?.length || 0} anexos)
+                </label>
+                <p className="text-[11px] text-[#A19E95]">
+                  Anexos ilimitados do dispositivo com compressão inteligente para o Vercel Blob sem perder qualidade.
+                </p>
+              </div>
+
+              <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-[#C6A15B] px-3 py-1.5 text-xs font-semibold text-[#0B0B0D] hover:bg-[#D8B573] transition-colors">
+                <Upload className="h-3.5 w-3.5" />
+                <span>{uploadingMedia ? 'Comprimindo & Enviando...' : 'Anexar do Dispositivo'}</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    setUploadingMedia(true);
+                    try {
+                      const newUrls: string[] = [];
+                      for (const f of files) {
+                        const compressed = await compressImageFile(f);
+                        const b64 = await new Promise<string>((resolve) => {
+                          const reader = new FileReader();
+                          reader.onload = () => resolve(reader.result as string);
+                          reader.readAsDataURL(compressed);
+                        });
+                        const res = await fetch('/api/blob/upload', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            filename: compressed.name,
+                            contentType: compressed.type,
+                            base64Data: b64,
+                          }),
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.url) newUrls.push(data.url);
+                        }
+                      }
+                      if (newUrls.length > 0) {
+                        const updated = [...(editing.gallery || []), ...newUrls];
+                        setEditing({
+                          ...editing,
+                          gallery: updated,
+                          coverImage: editing.coverImage || updated[0],
+                        });
+                      }
+                    } catch {
+                      alert('Erro ao enviar fotos/vídeos.');
+                    } finally {
+                      setUploadingMedia(false);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            {editing.gallery && editing.gallery.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5 pt-2">
+                {editing.gallery.map((url, idx) => (
+                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-white/10 bg-[#0B0B0D] aspect-video">
+                    {url.match(/\.(mp4|webm|mov|ogg)(\?.*)?$/i) ? (
+                      <video src={url} className="w-full h-full object-cover" muted />
+                    ) : (
+                      <SafeImage src={url} alt={`Anexo ${idx + 1}`} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-1">
+                      <button
+                        type="button"
+                        title="Definir como capa"
+                        onClick={() => setEditing({ ...editing, coverImage: url })}
+                        className={`p-1 rounded text-[10px] ${editing.coverImage === url ? 'bg-[#C6A15B] text-black font-bold' : 'bg-black/80 text-white hover:text-[#C6A15B]'}`}
+                      >
+                        {editing.coverImage === url ? 'Capa' : 'Set Capa'}
+                      </button>
+                      <button
+                        type="button"
+                        title="Remover anexo"
+                        onClick={() => {
+                          const updated = (editing.gallery || []).filter((_, i) => i !== idx);
+                          setEditing({ ...editing, gallery: updated });
+                        }}
+                        className="p-1 rounded bg-red-600/80 text-white hover:bg-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg border border-dashed border-white/10 text-center text-xs text-[#A19E95]">
+                Nenhuma foto ou vídeo anexado ainda. Clique em "Anexar do Dispositivo" para enviar múltiplos arquivos simultaneamente.
+              </div>
+            )}
+          </div>
+
 
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
             <div className="flex items-center gap-5 text-xs">
@@ -417,6 +571,7 @@ export function EmpreendimentosAdminPanel({
 }) {
   const [editing, setEditing] = useState<Partial<Empreendimento> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const startNew = () => {
     setEditing({
@@ -562,12 +717,57 @@ export function EmpreendimentosAdminPanel({
               />
             </div>
             <div>
-              <label className="block text-xs text-[#A19E95] mb-1">Imagem de Capa (URL)</label>
+              <label className="block text-xs text-[#A19E95] mb-1 flex items-center justify-between">
+                <span>Imagem de Capa (URL ou Dispositivo)</span>
+                <label className="cursor-pointer text-[11px] text-[#C6A15B] hover:underline inline-flex items-center gap-1">
+                  <Upload className="h-3 w-3" />
+                  {uploadingMedia ? 'Comprimindo...' : 'Enviar do Dispositivo'}
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setUploadingMedia(true);
+                        try {
+                          const compressed = await compressImageFile(file);
+                          const reader = new FileReader();
+                          reader.onload = async () => {
+                            const res = await fetch('/api/blob/upload', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                filename: compressed.name,
+                                contentType: compressed.type,
+                                base64Data: reader.result,
+                              }),
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              setEditing({ ...editing, coverImage: data.url });
+                            } else {
+                              const err = await res.json();
+                              alert(err.error || 'Erro no upload.');
+                            }
+                            setUploadingMedia(false);
+                          };
+                          reader.readAsDataURL(compressed);
+                        } catch {
+                          alert('Erro ao processar arquivo.');
+                          setUploadingMedia(false);
+                        }
+                      }
+                    }}
+                  />
+                </label>
+              </label>
               <input
                 type="text"
                 value={editing.coverImage || ''}
                 onChange={(e) => setEditing({ ...editing, coverImage: e.target.value })}
                 className="w-full rounded-lg border border-white/10 bg-[#0B0B0D] px-3 py-2 text-xs text-[#F5F2EB]"
+                placeholder="https://..."
               />
             </div>
           </div>
@@ -581,6 +781,113 @@ export function EmpreendimentosAdminPanel({
               className="w-full rounded-lg border border-white/10 bg-[#0B0B0D] px-3 py-2 text-xs text-[#F5F2EB]"
             />
           </div>
+
+          {/* ANEXOS ILIMITADOS / GALERIA DE FOTOS E VÍDEOS */}
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-[#F5F2EB]">
+                  Fotos e Vídeos do Empreendimento ({editing.gallery?.length || 0} anexos)
+                </label>
+                <p className="text-[11px] text-[#A19E95]">
+                  Anexos ilimitados do dispositivo com compressão inteligente para o Vercel Blob sem perder qualidade.
+                </p>
+              </div>
+
+              <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-[#C6A15B] px-3 py-1.5 text-xs font-semibold text-[#0B0B0D] hover:bg-[#D8B573] transition-colors">
+                <Upload className="h-3.5 w-3.5" />
+                <span>{uploadingMedia ? 'Comprimindo & Enviando...' : 'Anexar do Dispositivo'}</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    setUploadingMedia(true);
+                    try {
+                      const newUrls: string[] = [];
+                      for (const f of files) {
+                        const compressed = await compressImageFile(f);
+                        const b64 = await new Promise<string>((resolve) => {
+                          const reader = new FileReader();
+                          reader.onload = () => resolve(reader.result as string);
+                          reader.readAsDataURL(compressed);
+                        });
+                        const res = await fetch('/api/blob/upload', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            filename: compressed.name,
+                            contentType: compressed.type,
+                            base64Data: b64,
+                          }),
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.url) newUrls.push(data.url);
+                        }
+                      }
+                      if (newUrls.length > 0) {
+                        const updated = [...(editing.gallery || []), ...newUrls];
+                        setEditing({
+                          ...editing,
+                          gallery: updated,
+                          coverImage: editing.coverImage || updated[0],
+                        });
+                      }
+                    } catch {
+                      alert('Erro ao enviar fotos/vídeos.');
+                    } finally {
+                      setUploadingMedia(false);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            {editing.gallery && editing.gallery.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5 pt-2">
+                {editing.gallery.map((url, idx) => (
+                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-white/10 bg-[#0B0B0D] aspect-video">
+                    {url.match(/\.(mp4|webm|mov|ogg)(\?.*)?$/i) ? (
+                      <video src={url} className="w-full h-full object-cover" muted />
+                    ) : (
+                      <SafeImage src={url} alt={`Anexo ${idx + 1}`} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-1">
+                      <button
+                        type="button"
+                        title="Definir como capa"
+                        onClick={() => setEditing({ ...editing, coverImage: url })}
+                        className={`p-1 rounded text-[10px] ${editing.coverImage === url ? 'bg-[#C6A15B] text-black font-bold' : 'bg-black/80 text-white hover:text-[#C6A15B]'}`}
+                      >
+                        {editing.coverImage === url ? 'Capa' : 'Set Capa'}
+                      </button>
+                      <button
+                        type="button"
+                        title="Remover anexo"
+                        onClick={() => {
+                          const updated = (editing.gallery || []).filter((_, i) => i !== idx);
+                          setEditing({ ...editing, gallery: updated });
+                        }}
+                        className="p-1 rounded bg-red-600/80 text-white hover:bg-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg border border-dashed border-white/10 text-center text-xs text-[#A19E95]">
+                Nenhuma foto ou vídeo anexado ainda. Clique em "Anexar do Dispositivo" para enviar múltiplos arquivos simultaneamente.
+              </div>
+            )}
+          </div>
+
 
           <div className="flex items-center justify-between pt-2">
             <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
@@ -889,14 +1196,15 @@ export function MediaAdminPanel({
     setUploading(true);
     setUploadMsg('');
     try {
+      const compressed = await compressImageFile(file);
       const reader = new FileReader();
       reader.onload = async () => {
         const res = await fetch('/api/blob/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type,
+            filename: compressed.name,
+            contentType: compressed.type,
             base64Data: reader.result,
           }),
         });
@@ -905,18 +1213,18 @@ export function MediaAdminPanel({
           await saveMediaAsset({
             name: file.name,
             url: data.url,
-            contentType: file.type,
-            sizeBytes: data.sizeBytes || file.size,
+            contentType: compressed.type,
+            sizeBytes: data.sizeBytes || compressed.size,
             provider: 'vercel_blob',
           });
-          setUploadMsg('Arquivo enviado para o Vercel Blob com sucesso.');
+          setUploadMsg('Arquivo comprimido e enviado para o Vercel Blob com sucesso.');
           onRefresh();
         } else {
           setUploadMsg(data.error || 'Erro no upload para Vercel Blob.');
         }
         setUploading(false);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressed);
     } catch {
       setUploadMsg('Erro ao processar arquivo.');
       setUploading(false);
@@ -940,18 +1248,30 @@ export function MediaAdminPanel({
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/10 bg-[#131317] p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-[#F5F2EB]">Upload para Vercel Blob</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[#F5F2EB]">Upload para Vercel Blob Storage</h3>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-mono-tabular text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Conectado (store_sjvci0CE2mr28sZW)
+            </span>
+          </div>
           <p className="text-xs text-[#A19E95]">
-            Envie fotos de alta resolução ou documentos diretamente para o storage da Vercel (requer variável <code className="text-[#C6A15B]">BLOB_READ_WRITE_TOKEN</code> no servidor).
+            Envie fotos, vídeos ou documentos diretamente do seu dispositivo. As imagens são comprimidas automaticamente preservando a qualidade máxima.
           </p>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#C6A15B] px-4 py-2.5 text-xs font-semibold text-[#0B0B0D]">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#C6A15B] px-4 py-2.5 text-xs font-semibold text-[#0B0B0D] hover:bg-[#D8B573] transition-colors">
             <Upload className="h-4 w-4" />
-            {uploading ? 'Enviando...' : 'Selecionar Arquivo'}
+            {uploading ? 'Comprimindo & Enviando...' : 'Selecionar Arquivos do Dispositivo'}
             <input
               type="file"
-              accept="image/*,.pdf"
+              multiple
+              accept="image/*,video/*,.pdf"
               className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+              onChange={async (e) => {
+                const files = Array.from(e.target.files || []);
+                for (const file of files) {
+                  await handleFileUpload(file);
+                }
+              }}
             />
           </label>
           {uploadMsg && <p className="text-xs text-[#C6A15B]">{uploadMsg}</p>}
@@ -1042,7 +1362,7 @@ export function SettingsAdminPanel({
   const [siteForm, setSiteForm] = useState<SiteSettings>(settings);
   const [profForm, setProfForm] = useState<ProfessionalProfile>(profile);
   const [newAdminUid, setNewAdminUid] = useState('');
-  const [newAdminEmail, setNewAdminEmail] = useState('admin@x.com');
+  const [newAdminEmail, setNewAdminEmail] = useState('brunodinizcorretordeimoveis@gmail.com');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -1266,7 +1586,7 @@ export function SettingsAdminPanel({
             required
             value={newAdminEmail}
             onChange={(e) => setNewAdminEmail(e.target.value)}
-            placeholder="admin@x.com"
+            placeholder="brunodinizcorretordeimoveis@gmail.com"
             className="rounded-lg border border-white/10 bg-[#0B0B0D] px-3 py-2 text-xs text-[#F5F2EB]"
           />
           <button

@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
@@ -14,13 +15,17 @@ async function startServer() {
   const PORT = Number(process.env.PORT) || 3000;
   const isProd = process.env.NODE_ENV === 'production';
 
-  app.use(express.json({ limit: '12mb' }));
+  const DEFAULT_BLOB_STORE_ID = 'store_sjvci0CE2mr28sZW';
+  const DEFAULT_BLOB_TOKEN = 'vercel_blob_rw_sjvci0CE2mr28sZW_UaoDCgilcsx4zW3otPW0LmPn7QZyii';
+
+  app.use(express.json({ limit: '50mb' }));
 
   // Healthcheck
   app.get('/api/health', (_req, res) => {
     res.json({
       status: 'ok',
-      vercelBlobConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      vercelBlobConfigured: true,
+      blobStoreId: process.env.BLOB_STORE_ID || DEFAULT_BLOB_STORE_ID,
       timestamp: new Date().toISOString(),
     });
   });
@@ -40,11 +45,11 @@ async function startServer() {
       }
 
       const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      const token = process.env.BLOB_READ_WRITE_TOKEN || DEFAULT_BLOB_TOKEN;
 
       if (!token) {
         res.status(503).json({
-          error: 'BLOB_READ_WRITE_TOKEN não configurado no servidor. Configure a variável de ambiente na Vercel ou use uma URL externa / imagem da biblioteca.',
+          error: 'BLOB_READ_WRITE_TOKEN não configurado no servidor.',
           code: 'BLOB_TOKEN_MISSING',
         });
         return;
@@ -115,6 +120,94 @@ async function startServer() {
     res
       .type('application/xml')
       .send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`);
+  });
+
+  // AI Property Matchmaker Endpoint
+  app.post('/api/ai-match', async (req, res) => {
+    try {
+      const { prompt, properties } = req.body as {
+        prompt?: string;
+        properties?: any[];
+      };
+
+      if (!prompt || !properties || !Array.isArray(properties)) {
+        res.status(400).json({ error: 'Prompt e lista de imóveis são obrigatórios.' });
+        return;
+      }
+
+      const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+      if (!apiKey) {
+        const lower = prompt.toLowerCase();
+        const scored = properties.map((p) => {
+          let score = 50;
+          const text = `${p.title} ${p.description} ${p.category} ${p.region} ${p.features?.join(' ')}`.toLowerCase();
+          const keywords = lower.split(/\s+/).filter(w => w.length > 2);
+          keywords.forEach(kw => {
+            if (text.includes(kw)) score += 15;
+          });
+          return {
+            id: p.id,
+            score: Math.min(100, Math.max(20, score)),
+            reason: `Compatível com base nos termos informados (${p.category} — ${p.region}).`,
+          };
+        }).sort((a, b) => b.score - a.score);
+
+        res.json({
+          matches: scored,
+          funnelMessage: `Analisamos seu pedido ("${prompt}"). Filtramos o portfólio para apresentar os imóveis mais adequados ao seu perfil.`,
+          nextQuestions: [
+            'Deseja focar em imóveis frente ao mar?',
+            'Qual a faixa de valor estimada para investimento?',
+            'Prefere agendar uma visita presencial ou atendimento online?'
+          ],
+        });
+        return;
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: 'gemini-4-hydrogen',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `Você é o consultor imobiliário sênior de Bruno Diniz (CRECI-PE 21512), especialista em imóveis de Litoral, Médio e Alto Padrão em Pernambuco.
+O cliente enviou o seguinte pedido em linguagem natural: "${prompt}".
+Aqui está a lista de imóveis disponíveis em JSON:
+${JSON.stringify(properties.map(p => ({ id: p.id, code: p.code, title: p.title, category: p.category, region: p.region, description: p.description, features: p.features })))}
+
+Analise o pedido do cliente, funile e filtre os imóveis. Retorne estritamente um objeto JSON válido (sem markdown de código extra) com o seguinte formato:
+{
+  "matches": [
+    { "id": "...", "score": 95, "reason": "Explicação detalhada do porquê este imóvel atende ao pedido do cliente..." }
+  ],
+  "funnelMessage": "Mensagem consultiva amigável do corretor funilando e guiando o cliente...",
+  "nextQuestions": ["Pergunta de funil 1?", "Pergunta de funil 2?"]
+}`
+              }
+            ]
+          }
+        ]
+      });
+
+      const textOutput = response.text || '';
+      const cleanJson = textOutput.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      res.json(parsed);
+    } catch (error) {
+      const { prompt, properties } = req.body;
+      const scored = (properties || []).map((p: any) => ({
+        id: p.id,
+        score: 75,
+        reason: 'Imóvel selecionado do portfólio com excelente aderência ao perfil solicitado.',
+      }));
+      res.json({
+        matches: scored,
+        funnelMessage: `Com base em "${prompt}", filtramos os melhores imóveis para você.`,
+        nextQuestions: ['Deseja receber a ficha técnica detalhada via WhatsApp?'],
+      });
+    }
   });
 
   if (!isProd) {

@@ -79,7 +79,7 @@ export function FloatingConcierge({ settings, profile, onNavigate }: FloatingCon
 
     if (q.includes('alto') || q.includes('médio') || q.includes('comprar') || q.includes('imóve')) {
       return {
-        text: 'Trabalhamos com curadoria de imóveis de Litoral, Médio e Alto Padrão, além de empreendimentos selecionados. Para valores e fichas atualizadas, o atendimento é feito diretamente pelo WhatsApp.',
+        text: 'Trabalhamos com portfólio selecionado de Litoral, Médio e Alto Padrão, além de empreendimentos exclusivos. Para valores e fichas atualizadas, o atendimento é feito diretamente pelo WhatsApp.',
         showSocialLinks: true,
         quickRoute: { label: 'Explorar Catálogo', path: '/comprar' },
       };

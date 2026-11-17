@@ -128,7 +128,7 @@ export function AdminDashboard({
       onSiteDataChanged();
     } catch {
       setAuthErrorNotice(
-        `A conta autenticada (${auth.currentUser?.email || 'usuário'}) não possui permissão de administrador nas regras do Firestore. Se você entrou com admin@x.com, primeiro acesse com Google (jonasweb2rj@gmail.com) e autorize o UID (${auth.currentUser?.uid || ''}) em Configurações > Administradores.`
+        `A conta autenticada (${auth.currentUser?.email || 'usuário'}) não possui permissão de administrador nas regras do Firestore. Se você entrou com brunodinizcorretordeimoveis@gmail.com, primeiro acesse com Google (jonasweb2rj@gmail.com) e autorize o UID (${auth.currentUser?.uid || ''}) em Configurações > Administradores.`
       );
     } finally {
       setLoading(false);
