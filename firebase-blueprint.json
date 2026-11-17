@@ -1,0 +1,395 @@
+{
+  "entities": {
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Configurações institucionais, identidade visual, SEO e integrações do site público.",
+      "type": "object",
+      "properties": {
+        "brandName": { "type": "string", "maxLength": 120 },
+        "tagline": { "type": "string", "maxLength": 200 },
+        "creci": { "type": "string", "maxLength": 60 },
+        "whatsappNumber": { "type": "string", "maxLength": 30, "pattern": "^[0-9+]+$" },
+        "instagramHandle": { "type": "string", "maxLength": 80 },
+        "logoUrl": { "type": "string", "maxLength": 1000 },
+        "primaryColor": { "type": "string", "maxLength": 20 },
+        "accentColor": { "type": "string", "maxLength": 20 },
+        "backgroundColor": { "type": "string", "maxLength": 20 },
+        "displayFont": { "type": "string", "maxLength": 80 },
+        "bodyFont": { "type": "string", "maxLength": 80 },
+        "heroTitle": { "type": "string", "maxLength": 180 },
+        "heroSubtitle": { "type": "string", "maxLength": 400 },
+        "heroImage": { "type": "string", "maxLength": 1000 },
+        "seoTitle": { "type": "string", "maxLength": 120 },
+        "seoDescription": { "type": "string", "maxLength": 320 },
+        "ga4Id": { "type": "string", "maxLength": 60 },
+        "gtmId": { "type": "string", "maxLength": 60 },
+        "searchConsoleVerification": { "type": "string", "maxLength": 120 },
+        "googleAdsId": { "type": "string", "maxLength": 60 },
+        "lgpdNotice": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["brandName", "tagline", "creci", "whatsappNumber"]
+    },
+    "ProfessionalProfile": {
+      "title": "ProfessionalProfile",
+      "description": "Perfil profissional editável de Bruno Diniz com campos pendentes protegidos.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 120 },
+        "creci": { "type": "string", "maxLength": 60 },
+        "headline": { "type": "string", "maxLength": 220 },
+        "bio": { "type": "string", "maxLength": 2500 },
+        "specialties": { "type": "array" },
+        "pillars": { "type": "array" },
+        "instagramHandle": { "type": "string", "maxLength": 80 },
+        "instagramPosts": { "type": "number" },
+        "instagramFollowers": { "type": "number" },
+        "instagramFollowing": { "type": "number" },
+        "whatsapp": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 140 },
+        "commercialAddress": { "type": "string", "maxLength": 260 },
+        "experienceYears": { "type": "string", "maxLength": 80 },
+        "portraitImage": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "creci", "headline", "bio"]
+    },
+    "Property": {
+      "title": "Property",
+      "description": "Imóvel residencial ou comercial cadastrado por Bruno Diniz com status de confirmação explícito.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 40, "pattern": "^[a-zA-Z0-9_-]+$" },
+        "slug": { "type": "string", "maxLength": 160, "pattern": "^[a-z0-9-]+$" },
+        "title": { "type": "string", "maxLength": 180 },
+        "businessType": { "type": "string", "enum": ["Venda", "Locação", "Temporada", "A confirmar"] },
+        "propertyType": { "type": "string", "enum": ["Apartamento", "Casa", "Cobertura", "Flat", "Terreno", "A confirmar"] },
+        "category": { "type": "string", "enum": ["Litoral", "Médio Padrão", "Alto Padrão"] },
+        "region": { "type": "string", "maxLength": 120 },
+        "neighborhood": { "type": "string", "maxLength": 120 },
+        "address": { "type": "string", "maxLength": 240 },
+        "priceConfirmed": { "type": "boolean" },
+        "price": { "type": "number" },
+        "condoFeeConfirmed": { "type": "boolean" },
+        "condoFee": { "type": "number" },
+        "areaConfirmed": { "type": "boolean" },
+        "areaSqm": { "type": "number" },
+        "bedroomsConfirmed": { "type": "boolean" },
+        "bedrooms": { "type": "number" },
+        "suites": { "type": "number" },
+        "parkingSpots": { "type": "number" },
+        "description": { "type": "string", "maxLength": 4000 },
+        "features": { "type": "array" },
+        "coverImage": { "type": "string", "maxLength": 1000 },
+        "gallery": { "type": "array" },
+        "featured": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "confirmationStatus": { "type": "string", "enum": ["a_confirmar", "confirmado"] },
+        "confirmationNotes": { "type": "string", "maxLength": 500 },
+        "empreendimentoId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "slug", "title", "businessType", "category", "region", "published", "confirmationStatus"]
+    },
+    "Empreendimento": {
+      "title": "Empreendimento",
+      "description": "Empreendimento imobiliário gerenciado no catálogo institucional.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 40, "pattern": "^[a-zA-Z0-9_-]+$" },
+        "slug": { "type": "string", "maxLength": 160, "pattern": "^[a-z0-9-]+$" },
+        "name": { "type": "string", "maxLength": 180 },
+        "developer": { "type": "string", "maxLength": 140 },
+        "category": { "type": "string", "enum": ["Litoral", "Médio Padrão", "Alto Padrão"] },
+        "region": { "type": "string", "maxLength": 120 },
+        "stage": { "type": "string", "enum": ["Lançamento", "Em Construção", "Pronto para Morar", "A confirmar"] },
+        "priceFromConfirmed": { "type": "boolean" },
+        "priceFrom": { "type": "number" },
+        "areaRange": { "type": "string", "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 4000 },
+        "amenities": { "type": "array" },
+        "coverImage": { "type": "string", "maxLength": 1000 },
+        "gallery": { "type": "array" },
+        "featured": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "confirmationStatus": { "type": "string", "enum": ["a_confirmar", "confirmado"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "slug", "name", "category", "region", "stage", "published", "confirmationStatus"]
+    },
+    "LandingPage": {
+      "title": "LandingPage",
+      "description": "Landing page premium exclusiva configurada para um imóvel ou empreendimento.",
+      "type": "object",
+      "properties": {
+        "slug": { "type": "string", "maxLength": 160, "pattern": "^[a-z0-9-]+$" },
+        "title": { "type": "string", "maxLength": 180 },
+        "kicker": { "type": "string", "maxLength": 100 },
+        "heroHeadline": { "type": "string", "maxLength": 200 },
+        "heroSubheadline": { "type": "string", "maxLength": 450 },
+        "heroImage": { "type": "string", "maxLength": 1000 },
+        "targetType": { "type": "string", "enum": ["property", "empreendimento", "campanha"] },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "highlights": { "type": "array" },
+        "gallery": { "type": "array" },
+        "ctaLabel": { "type": "string", "maxLength": 80 },
+        "whatsappMessage": { "type": "string", "maxLength": 300 },
+        "seoTitle": { "type": "string", "maxLength": 120 },
+        "seoDescription": { "type": "string", "maxLength": 320 },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["slug", "title", "heroHeadline", "targetType", "published"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Lead capturado pelo site público, landing page ou atendimento WhatsApp.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "phone": { "type": "string", "minLength": 6, "maxLength": 40 },
+        "email": { "type": "string", "maxLength": 160 },
+        "message": { "type": "string", "maxLength": 2000 },
+        "source": { "type": "string", "maxLength": 80 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 180 },
+        "empreendimentoId": { "type": "string", "maxLength": 128 },
+        "landingPageId": { "type": "string", "maxLength": 128 },
+        "utmSource": { "type": "string", "maxLength": 100 },
+        "utmMedium": { "type": "string", "maxLength": 100 },
+        "utmCampaign": { "type": "string", "maxLength": 100 },
+        "score": { "type": "string", "enum": ["quente", "morno", "frio"] },
+        "scorePoints": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["novo_lead", "contato", "qualificado", "visita_agendada", "visita_realizada", "proposta", "negociacao", "fechado", "perdido"]
+        },
+        "tags": { "type": "array" },
+        "lgpdConsent": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "source", "score", "status", "lgpdConsent"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Ficha privada de cliente no CRM imobiliário (PII restrita ao corretor).",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 140 },
+        "phone": { "type": "string", "maxLength": 40 },
+        "email": { "type": "string", "maxLength": 160 },
+        "origin": { "type": "string", "maxLength": 80 },
+        "budgetRange": { "type": "string", "maxLength": 100 },
+        "preferredCategories": { "type": "array" },
+        "interestedPropertyIds": { "type": "array" },
+        "tags": { "type": "array" },
+        "notes": { "type": "string", "maxLength": 3000 },
+        "leadId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone"]
+    },
+    "ClientInteraction": {
+      "title": "ClientInteraction",
+      "description": "Histórico de atendimento ou follow-up vinculado a um cliente.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["ligacao", "whatsapp", "email", "visita", "proposta", "nota"] },
+        "summary": { "type": "string", "maxLength": 1500 },
+        "authorEmail": { "type": "string", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "summary"]
+    },
+    "PipelineDeal": {
+      "title": "PipelineDeal",
+      "description": "Card do funil de vendas (Kanban) no CRM.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 180 },
+        "clientId": { "type": "string", "maxLength": 128 },
+        "clientName": { "type": "string", "maxLength": 140 },
+        "clientPhone": { "type": "string", "maxLength": 40 },
+        "leadId": { "type": "string", "maxLength": 128 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 180 },
+        "stage": {
+          "type": "string",
+          "enum": ["novo_lead", "contato", "qualificado", "visita_agendada", "visita_realizada", "proposta", "negociacao", "fechado", "perdido"]
+        },
+        "score": { "type": "string", "enum": ["quente", "morno", "frio"] },
+        "estimatedValue": { "type": "number" },
+        "source": { "type": "string", "maxLength": 80 },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "clientName", "stage", "score"]
+    },
+    "Visit": {
+      "title": "Visit",
+      "description": "Agendamento de visita a imóvel ou empreendimento.",
+      "type": "object",
+      "properties": {
+        "clientName": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "clientPhone": { "type": "string", "minLength": 6, "maxLength": 40 },
+        "clientEmail": { "type": "string", "maxLength": 160 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 180 },
+        "empreendimentoId": { "type": "string", "maxLength": 128 },
+        "scheduledDate": { "type": "string", "maxLength": 30 },
+        "scheduledTime": { "type": "string", "maxLength": 20 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "reminderSent": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["solicitada", "confirmada", "realizada", "cancelada"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["clientName", "clientPhone", "scheduledDate", "status"]
+    },
+    "Proposal": {
+      "title": "Proposal",
+      "description": "Proposta comercial e documentos anexados no CRM.",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string", "maxLength": 128 },
+        "clientName": { "type": "string", "maxLength": 140 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 180 },
+        "proposedValue": { "type": "number" },
+        "paymentTerms": { "type": "string", "maxLength": 1500 },
+        "documentUrl": { "type": "string", "maxLength": 1000 },
+        "documentName": { "type": "string", "maxLength": 180 },
+        "status": { "type": "string", "enum": ["rascunho", "enviada", "em_analise", "aceita", "recusada"] },
+        "notes": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["clientName", "propertyTitle", "proposedValue", "status"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Tarefa e lembrete de follow-up do corretor.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "dueDate": { "type": "string", "maxLength": 40 },
+        "priority": { "type": "string", "enum": ["alta", "media", "baixa"] },
+        "completed": { "type": "boolean" },
+        "clientId": { "type": "string", "maxLength": 128 },
+        "leadId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "priority", "completed"]
+    },
+    "MediaAsset": {
+      "title": "MediaAsset",
+      "description": "Registro de arquivo de mídia hospedado no Vercel Blob ou biblioteca local.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 200 },
+        "url": { "type": "string", "maxLength": 1000 },
+        "contentType": { "type": "string", "maxLength": 100 },
+        "sizeBytes": { "type": "number" },
+        "provider": { "type": "string", "enum": ["vercel_blob", "local_asset", "external"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "url", "provider"]
+    },
+    "AnalyticsEvent": {
+      "title": "AnalyticsEvent",
+      "description": "Evento de conversão e navegação do site público.",
+      "type": "object",
+      "properties": {
+        "eventType": { "type": "string", "enum": ["page_view", "property_view", "empreendimento_view", "landing_view", "whatsapp_click", "lead_submit", "visit_submit"] },
+        "path": { "type": "string", "maxLength": 240 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "source": { "type": "string", "maxLength": 80 },
+        "utmSource": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["eventType", "path"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Administrador autorizado a operar o painel e o CRM.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 160 },
+        "displayName": { "type": "string", "maxLength": 140 },
+        "role": { "type": "string", "enum": ["admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/siteSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSettings" },
+      "description": "Configurações globais do site público e identidade visual."
+    },
+    "/professionalProfile/{profileId}": {
+      "schema": { "$ref": "#/entities/ProfessionalProfile" },
+      "description": "Dados institucionais de Bruno Diniz."
+    },
+    "/properties/{propertyId}": {
+      "schema": { "$ref": "#/entities/Property" },
+      "description": "Catálogo de imóveis."
+    },
+    "/empreendimentos/{empreendimentoId}": {
+      "schema": { "$ref": "#/entities/Empreendimento" },
+      "description": "Catálogo de empreendimentos."
+    },
+    "/landingPages/{landingPageId}": {
+      "schema": { "$ref": "#/entities/LandingPage" },
+      "description": "Landing page premium configurada no painel."
+    },
+    "/leads/{leadId}": {
+      "schema": { "$ref": "#/entities/Lead" },
+      "description": "Leads capturados pelo site público."
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Fichas de clientes no CRM."
+    },
+    "/clients/{clientId}/interactions/{interactionId}": {
+      "schema": { "$ref": "#/entities/ClientInteraction" },
+      "description": "Interações registradas na ficha do cliente."
+    },
+    "/pipeline/{dealId}": {
+      "schema": { "$ref": "#/entities/PipelineDeal" },
+      "description": "Negócios no pipeline Kanban do CRM."
+    },
+    "/visits/{visitId}": {
+      "schema": { "$ref": "#/entities/Visit" },
+      "description": "Agenda e solicitações de visita."
+    },
+    "/proposals/{proposalId}": {
+      "schema": { "$ref": "#/entities/Proposal" },
+      "description": "Propostas comerciais e documentos."
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Tarefas e lembretes de follow-up."
+    },
+    "/media/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaAsset" },
+      "description": "Biblioteca de imagens e documentos (Vercel Blob / assets)."
+    },
+    "/analytics/{eventId}": {
+      "schema": { "$ref": "#/entities/AnalyticsEvent" },
+      "description": "Eventos de analytics e conversão."
+    },
+    "/adminUsers/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Usuários administradores autorizados."
+    }
+  }
+}

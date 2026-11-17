@@ -1,0 +1,6 @@
+{
+  "name": "Bruno Diniz | Imóveis Litoral, Médio e Alto Padrão",
+  "description": "Site institucional imobiliário de Bruno Diniz (CRECI-PE 21512). Especialista em imóveis de Litoral, Médio e Alto Padrão em Pernambuco, com CRM e gestão de empreendimentos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
